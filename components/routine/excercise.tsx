@@ -57,16 +57,23 @@ export default function ExerciseComponent({
             </TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className='ps-0 h-min py-1'>Ejercicio</TableHead>
-                <TableHead className='pe-0 h-min py-1 text-right'>
+                <TableHead className='ps-0 pe-1 h-min py-1'>
+                  Ejercicio
+                </TableHead>
+                <TableHead className='pe-0 ps-1 h-min py-1 text-right max-[380px]:hidden'>
                   Objetivo<sup>*</sup>
+                </TableHead>
+                <TableHead className='pe-0 ps-1 h-min py-1 text-right min-[380px]:hidden'>
+                  Obj.<sup>*</sup>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {objectives.map((exercise) => (
                 <TableRow key={exercise._id}>
-                  <TableCell className='ps-0 py-1'>{exercise.name}</TableCell>
+                  <TableCell className='ps-0 py-1 whitespace-normal'>
+                    {exercise.name}
+                  </TableCell>
                   <TableCell className='pe-0 py-1 text-right'>
                     {formatObjective({ exercise })}
                   </TableCell>
@@ -82,7 +89,7 @@ export default function ExerciseComponent({
             <TableBody>
               <TableRow>
                 <TableCell className='ps-0 py-1'>Objetivo</TableCell>
-                <TableCell className='pe-0 py-1 text-right'>
+                <TableCell className='pe-0 py-1 text-right whitespace-normal'>
                   {formatObjective({ exercise: objectives[0] })}
                 </TableCell>
               </TableRow>
@@ -97,7 +104,7 @@ export default function ExerciseComponent({
         exercises={objectives.map(({ _id, name }) => ({ _id, name }))}
         performance={performance}
         postPerformanceParams={postPerformanceParams}
-        className='ml-auto'
+        className='ml-auto whitespace-normal h-auto py-1'
       />
       {performance == null ? null : (
         <Fragment>
@@ -115,21 +122,24 @@ export default function ExerciseComponent({
                   </TableCaption>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className='ps-0 h-min py-1'>
+                      <TableHead className='ps-0 h-min py-1 pe-1'>
                         Ejercicio
                       </TableHead>
                       <TableHead className='h-min py-1 text-center max-[460px]:hidden'>
                         Series
                       </TableHead>
-                      <TableHead className='pe-0 h-min py-1 text-right'>
+                      <TableHead className='pe-0 h-min py-1 ps-1 text-right max-[380px]:hidden'>
                         Rendimiento<sup>*</sup>
+                      </TableHead>
+                      <TableHead className='pe-0 h-min py-1 ps-1 text-right min-[380px]:hidden'>
+                        Rdto.<sup>*</sup>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {performance.map((exercise) => (
                       <TableRow key={exercise._id}>
-                        <TableCell className='ps-0 py-1 whitespace-normal'>
+                        <TableCell className='ps-0 py-1 whitespace-normal!'>
                           {exercise.name}
                         </TableCell>
                         <TableCell className='py-1 text-center max-[460px]:hidden'>
@@ -162,13 +172,13 @@ export default function ExerciseComponent({
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className='ps-0 py-1'>
+                      <TableCell className='ps-0 py-1 max-[460px]:hidden'>
                         {performance[0]?.schemes.reduce(
                           (acc, scheme) => acc + scheme.sets,
                           0,
                         )}
                       </TableCell>
-                      <TableCell className='pe-0 py-1 text-right'>
+                      <TableCell className='pe-0 py-1 text-right whitespace-normal'>
                         {formatPerformance({ exercise: performance[0] })}
                       </TableCell>
                     </TableRow>
