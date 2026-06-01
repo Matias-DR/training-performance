@@ -152,7 +152,7 @@ export default function ExerciseComponent({
                   </TableCaption>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className='h-min py-1 text-center max-[460px]:hidden'>
+                      <TableHead className='h-min py-1 max-[460px]:hidden'>
                         Series
                       </TableHead>
                       <TableHead className='pe-0 h-min py-1 text-right'>
@@ -162,14 +162,12 @@ export default function ExerciseComponent({
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className='pe-0 py-1 text-right'>
+                      <TableCell className='pe-0 py-1'>
                         {performance[0]?.schemes.reduce(
                           (acc, scheme) => acc + scheme.sets,
                           0,
                         )}
                       </TableCell>
-                    </TableRow>
-                    <TableRow>
                       <TableCell className='pe-0 py-1 text-right'>
                         {formatPerformance({ exercise: performance[0] })}
                       </TableCell>
