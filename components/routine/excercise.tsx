@@ -91,19 +91,14 @@ export default function ExerciseComponent({
         )}
       </section>
       <Separator />
-      <section
-        aria-labelledby='realizado-title'
-        className='flex flex-wrap gap-4 justify-between items-center'
-      >
-        <h4 id='realizado-title'>Realizado</h4>
-        <SetPerformance
-          queryKeys={queryKeys}
-          name={exercise.name}
-          exercises={objectives.map(({ _id, name }) => ({ _id, name }))}
-          performance={performance}
-          postPerformanceParams={postPerformanceParams}
-        />
-      </section>
+      <SetPerformance
+        queryKeys={queryKeys}
+        name={exercise.name}
+        exercises={objectives.map(({ _id, name }) => ({ _id, name }))}
+        performance={performance}
+        postPerformanceParams={postPerformanceParams}
+        className='ml-auto'
+      />
       {performance == null ? null : (
         <Fragment>
           <Separator />
@@ -111,7 +106,7 @@ export default function ExerciseComponent({
             aria-labelledby='total-title'
             className='flex gap-2 flex-col'
           >
-            <h4 id='total-title'>Total</h4>
+            <h4 id='total-title'>Realizado</h4>
             {performance.length > 0 ? (
               performance.length > 1 ? (
                 <Table>
@@ -153,11 +148,20 @@ export default function ExerciseComponent({
               ) : (
                 <Table>
                   <TableCaption className='mt-0 text-xs text-right'>
-                    Series × Reps × Peso(KG)
+                    Rendimiento: Series × Reps × Peso(KG)
                   </TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className='h-min py-1 text-center max-[460px]:hidden'>
+                        Series
+                      </TableHead>
+                      <TableHead className='pe-0 h-min py-1 text-right'>
+                        Rendimiento<sup>*</sup>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className='ps-0 py-1'>Series</TableCell>
                       <TableCell className='pe-0 py-1 text-right'>
                         {performance[0]?.schemes.reduce(
                           (acc, scheme) => acc + scheme.sets,
@@ -166,7 +170,6 @@ export default function ExerciseComponent({
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className='ps-0 py-1'>Realizado</TableCell>
                       <TableCell className='pe-0 py-1 text-right'>
                         {formatPerformance({ exercise: performance[0] })}
                       </TableCell>
