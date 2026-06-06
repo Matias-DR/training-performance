@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react'
+import { useEffect, useState, type HTMLAttributes } from 'react'
 
 import { Fragment } from 'react/jsx-runtime'
 
@@ -37,10 +37,19 @@ export default function ExerciseComponent({
   Pick<SetPerformanceProps, 'postPerformanceParams'>) {
   const { objectives, performance } = exercise
 
+  const [animate, setAnimate] = useState(false)
+
+  useEffect(() => {
+    if (!animate) return
+    const timeout = setTimeout(() => setAnimate(false), 2000)
+    return () => clearTimeout(timeout)
+  }, [animate])
+
   return (
     <article
       className={cn(
         'flex flex-col gap-2 p-4 bg-card border rounded-md',
+        animate && 'animate-pulse',
         className,
       )}
       {...rest}
@@ -104,6 +113,7 @@ export default function ExerciseComponent({
         exercises={objectives.map(({ _id, name }) => ({ _id, name }))}
         performance={performance}
         postPerformanceParams={postPerformanceParams}
+        setAnimate={setAnimate}
         className='ml-auto whitespace-normal h-auto py-1'
       />
       {performance == null ? null : (

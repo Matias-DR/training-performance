@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { TrashIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { Fragment } from 'react/jsx-runtime'
 import { z } from 'zod'
@@ -46,6 +46,7 @@ export type Props = {
   name: string
   performance?: ExercisePerformance[]
   postPerformanceParams: PostPerformanceProps['params']
+  setAnimate: (animate: boolean) => void
 }
 
 const schema = z.object({
@@ -65,13 +66,20 @@ export default function SetPerformance({
   exercises,
   performance,
   postPerformanceParams: params,
+  setAnimate,
   asChild = true,
   ...rest
 }: Parameters<typeof DialogTrigger>[number] & QueryKeys & Props) {
+  const [open, setOpen] = useState(false)
+
   const { mutate: setPerformance, isPending: isSetPerformancePending } =
     useSetPerformance({
       params,
       queryKeys,
+      onSuccess: () => {
+        setOpen(false)
+        setAnimate(true)
+      },
     })
 
   const defaultPerformed = useMemo<PostPerformanceProps['body']['performed']>(
@@ -97,6 +105,10 @@ export default function SetPerformance({
     name: 'performed',
   })
 
+  useEffect(() => {
+    form.reset({ performed: defaultPerformed })
+  }, [defaultPerformed, form])
+
   const items = useMemo(
     () =>
       exercises.map((exercise) => ({
@@ -109,7 +121,7 @@ export default function SetPerformance({
   const isCompoundExercise = items.length > 1
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild={asChild} {...rest}>
         <Button size='xs'>Ingresar resultados</Button>
       </DialogTrigger>

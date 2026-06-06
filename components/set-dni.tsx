@@ -1,6 +1,6 @@
 'use client'
 
-import type { FormHTMLAttributes } from 'react'
+import { type FormHTMLAttributes, useTransition } from 'react'
 
 import z from 'zod'
 
@@ -20,10 +20,12 @@ type Schema = z.infer<typeof schema>
 
 export interface Props {
   onSubmit: (values: Schema) => void
+  isLoading?: boolean
 }
 
 export default function SetDNI({
   onSubmit,
+  isLoading,
   className,
   ...rest
 }: Omit<FormHTMLAttributes<HTMLFormElement>, 'onSubmit'> & Props) {
@@ -59,7 +61,9 @@ export default function SetDNI({
       />
       <Button
         type='submit'
-        disabled={form.formState.isSubmitting || !form.formState.isValid}
+        disabled={
+          isLoading || form.formState.isSubmitting || !form.formState.isValid
+        }
       >
         Buscar
       </Button>
@@ -67,12 +71,18 @@ export default function SetDNI({
   )
 }
 
-export const useSetDNIAsPathParam = () => {
+export function useSetDNIAsPathParam() {
   const { push } = useRouter()
+  const [isLoading, startTransition] = useTransition()
 
-  function setDNIAsPathParam(values: Schema) {
-    push(`/${values.dni}`)
+  const setDNIAsPathParam = (values: Schema) => {
+    startTransition(() => {
+      push(`/${values.dni}`)
+    })
   }
 
-  return { setDNIAsPathParam }
+  return {
+    setDNIAsPathParam,
+    isLoading,
+  }
 }

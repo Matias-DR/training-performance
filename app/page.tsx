@@ -13,7 +13,7 @@ import {
 import { UserSearchIcon } from 'lucide-react'
 
 export default function Home() {
-  const { setDNIAsPathParam } = useSetDNIAsPathParam()
+  const { setDNIAsPathParam, isLoading } = useSetDNIAsPathParam()
 
   return (
     <main className='p-6'>
@@ -29,7 +29,7 @@ export default function Home() {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <SetDNI onSubmit={setDNIAsPathParam} />
+          <SetDNI onSubmit={setDNIAsPathParam} isLoading={isLoading} />
         </EmptyContent>
       </Empty>
     </main>
