@@ -211,6 +211,7 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
     {
       _id: string
       name: string
+      url?: string
     }
   >(
     exerciseDocs.map((exercise) => [
@@ -218,6 +219,7 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
       {
         _id: String(exercise._id),
         name: exercise.name,
+        url: (exercise.url as string) || undefined,
       },
     ]),
   )
@@ -281,6 +283,7 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
 
           return {
             _id: groupId,
+            url: group?.url,
             name: group?.name ?? 'Exercise Group',
             objectives,
             performance,

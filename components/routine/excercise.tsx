@@ -8,6 +8,13 @@ import SetPerformance, {
   type Props as SetPerformanceProps,
 } from './set-performance'
 
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import {
   Table,
@@ -19,7 +26,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { formatObjective, formatPerformance } from './helpers'
+import {
+  formatObjective,
+  formatPerformance,
+  getYouTubeEmbedUrl,
+} from './helpers'
 
 export interface Props {
   exercise: ExerciseGroup
@@ -55,7 +66,46 @@ export default function ExerciseComponent({
       {...rest}
     >
       <header>
-        <h3>{exercise.name}</h3>
+        {exercise.url ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant='link'
+                className='block w-full p-0 h-auto text-left font-heading text-base truncate'
+                aria-label={`Ver video: ${exercise.name}`}
+              >
+                {exercise.name}
+              </Button>
+            </DialogTrigger>
+            <DialogContent showCloseButton className='sm:max-w-2xl'>
+              <DialogTitle>{exercise.name}</DialogTitle>
+              {(() => {
+                const embed = getYouTubeEmbedUrl(exercise.url!)
+                return embed ? (
+                  <div className='aspect-video w-full'>
+                    <iframe
+                      className='size-full'
+                      src={embed}
+                      title={exercise.name}
+                      allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <a
+                    href={exercise.url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                  >
+                    Ver video
+                  </a>
+                )
+              })()}
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <h3 className='truncate'>{exercise.name}</h3>
+        )}
       </header>
       <Separator />
       <section aria-labelledby='objetivo-title' className='flex gap-2 flex-col'>

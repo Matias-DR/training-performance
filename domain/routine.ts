@@ -9,6 +9,7 @@ export interface SchemePerformance extends Scheme {
 
 export interface Exercise<Id = string, SchemeType = Scheme[]> {
   _id: Id
+  url?: string
   name: string
   schemes: SchemeType
 }
@@ -19,6 +20,7 @@ export interface ExerciseGroup<
   PerformanceType = ExercisePerformance,
 > {
   _id: Id
+  url?: string
   name: string
   objectives: ExerciseType[]
   performance?: PerformanceType[]
