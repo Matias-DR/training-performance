@@ -53,7 +53,7 @@ export default function Layout({ children }: Props) {
   return (
     <ThemeProvider
       attribute='class'
-      defaultTheme='black'
+      defaultTheme='dark'
       enableSystem
       disableTransitionOnChange
     >
