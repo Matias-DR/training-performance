@@ -34,10 +34,6 @@ import {
 import { keys, useGetClient } from '@/hooks/routine'
 import { cn } from '@/lib/utils'
 
-/**
- * adaptaciones. para cuando se trata de una bicerie, tricerie, alguna categoría diferente de ejercicio como un conjunto de ejercicios, podríamos decir, en vez de mostrar el título, el nombre del ejercicio, tricerie, bicerie, si querés, como nombre, no sólo categoría, tricerie fuerza, bicerie abdominales, tricerie calentamiento. y en el objetivo de agregar una columna con encabezado ejercicio, quedando así entonces ejercicio X, series tanto, repeticiones tanto. Otra fila, ejercicio M, series tanto, repeticiones tanto. Otra fila, ejercicio I, series tanto, repeticiones tanto. Y para el caso de ingresar resultado, por un lado, primero hay que adaptarlo, arreglarlo, y segundo, agregar la funcionalidad de que exista un campo más, una columna más, también encabezada a ejercicio, que te permita indicar, identificar a qué ejercicio de esa bicerie, tricerie o conjunto de ejercicios X corresponde. Pero además, ya que de esta forma la cantidad de filas se extendería bastante, podría tranquilamente quedar entre 9 a 12 filas, podríamos hacer que el campo serie, que la columna serie, más bien se pase a llamar series y que el dato sea modificable. Esta última adaptación, para esta última adaptación no sería necesario modificar el backend en principio. Sería necesario modificar el front, adaptar el front.
- */
-
 export default function ClientHome() {
   const routeParams = useParams<{ dni: string }>()
   const dni = useMemo(() => String(routeParams.dni || ''), [routeParams])

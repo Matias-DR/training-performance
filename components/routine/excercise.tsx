@@ -116,7 +116,7 @@ export default function ExerciseComponent({
         setAnimate={setAnimate}
         className='ml-auto whitespace-normal h-auto py-1'
       />
-      {performance == null ? null : (
+      {performance == null || performance.length === 0 ? null : (
         <Fragment>
           <Separator />
           <section

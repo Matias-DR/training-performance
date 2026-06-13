@@ -43,11 +43,25 @@ type RawSessionDay = {
 }
 
 type RawRoutineData = {
+  routineId?: string
   startDate?: unknown
   endDate?: unknown
   active?: boolean
   sessions?: Record<string, Record<string, RawSessionDay>>
 }
+
+type RoutineExerciseNode = {
+  exerciseId: string
+  items?: RoutineExerciseNode[]
+}
+
+type RoutineDocSession = {
+  weeks: number[]
+  days: number[]
+  exercises: RoutineExerciseNode[]
+}
+
+const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i
 
 export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
   const { dni: clientParam } = await ctx.params
@@ -84,8 +98,29 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
     [string, RawRoutineData]
   >
 
-  const activeRoutine =
-    rawRoutines.find(([, routine]) => routine.active) ?? rawRoutines[0]
+  const now = Date.now()
+
+  const toTime = (value: unknown) =>
+    value ? new Date(value as string | number | Date).getTime() : Number.NaN
+
+  const activeRoutines = rawRoutines.filter(([, routine]) => routine.active)
+
+  // Prefer the routine whose date range contains today.
+  const currentRoutine = activeRoutines.find(([, routine]) => {
+    const start = toTime(routine.startDate)
+    const end = toTime(routine.endDate)
+
+    return (
+      !Number.isNaN(start) && start <= now && (Number.isNaN(end) || now <= end)
+    )
+  })
+
+  // Fallback: most recently started active routine.
+  const mostRecentRoutine = [...activeRoutines].sort(
+    ([, a], [, b]) => toTime(b.startDate) - toTime(a.startDate),
+  )[0]
+
+  const activeRoutine = currentRoutine ?? mostRecentRoutine ?? rawRoutines[0]
 
   if (!activeRoutine) {
     return NextResponse.json(
@@ -103,8 +138,16 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
 
   const [routineId, rawRoutineData] = activeRoutine
 
+  // The routines map is keyed by `{routineObjectId}_{startDate}`, so the real
+  // ObjectId is the key prefix (the `routineId` field is not always present).
+  const routineObjectId = rawRoutineData.routineId ?? routineId.split('_')[0]
+
+  if (!OBJECT_ID_PATTERN.test(routineObjectId)) {
+    return NextResponse.json(null, { status: 404 })
+  }
+
   const routineDoc = await routinesCollection.findOne({
-    _id: new mongoose.Types.ObjectId(routineId),
+    _id: new mongoose.Types.ObjectId(routineObjectId),
   })
 
   if (!routineDoc) {
@@ -113,10 +156,20 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
 
   const exerciseIds = new Set<string>()
 
-  for (const session of routineDoc.sessions ?? []) {
-    for (const groupId of session.exercises ?? []) {
-      exerciseIds.add(groupId)
+  const routineSessions = (routineDoc.sessions ?? []) as RoutineDocSession[]
+
+  const collectExerciseIds = (nodes: RoutineExerciseNode[] = []) => {
+    for (const node of nodes) {
+      if (node.exerciseId) {
+        exerciseIds.add(node.exerciseId)
+      }
+
+      collectExerciseIds(node.items)
     }
+  }
+
+  for (const session of routineSessions) {
+    collectExerciseIds(session.exercises)
   }
 
   for (const week of Object.values(rawRoutineData.sessions ?? {})) {
@@ -169,70 +222,75 @@ export async function GET(_request: Request, ctx: { params: Promise<Params> }) {
     ]),
   )
 
-  const sessions: Session[] = (routineDoc.sessions ?? []).map(
-    (session: { week: number; day: number; exercises: string[] }) => {
-      const dayData =
-        rawRoutineData.sessions?.[String(session.week)]?.[String(session.day)]
+  const sessions: Session[] = []
 
-      const exercises: ExerciseGroup[] = session.exercises.map((groupId) => {
-        const group = exerciseMap.get(groupId)
+  for (const routineSession of routineSessions) {
+    const groupIds = routineSession.exercises.map((node) => node.exerciseId)
 
-        const rawObjectives = dayData?.objectives?.[groupId] ?? []
+    // A routine-doc session describes a set of weeks and days; expand the
+    // cartesian product into one output Session per (week, day) pair.
+    for (const week of routineSession.weeks ?? []) {
+      for (const day of routineSession.days ?? []) {
+        const dayData = rawRoutineData.sessions?.[String(week)]?.[String(day)]
 
-        const rawPerformance = dayData?.performed?.[groupId] ?? []
+        const exercises: ExerciseGroup[] = groupIds.map((groupId) => {
+          const group = exerciseMap.get(groupId)
 
-        const objectives: Exercise[] = rawObjectives.map((exercise, index) => {
-          const nestedExerciseId = exercise.exercise ?? groupId
+          const rawObjectives = dayData?.objectives?.[groupId] ?? []
 
-          const nestedExercise = exerciseMap.get(nestedExerciseId)
+          const rawPerformance = dayData?.performed?.[groupId] ?? []
+
+          const objectives: Exercise[] = rawObjectives.map(
+            (exercise, index) => {
+              const nestedExerciseId = exercise.exercise ?? groupId
+
+              const nestedExercise = exerciseMap.get(nestedExerciseId)
+
+              return {
+                _id: nestedExerciseId,
+                name: nestedExercise?.name ?? `Exercise ${index + 1}`,
+                schemes: exercise.schemes.map(
+                  (scheme): Scheme => ({
+                    sets: scheme.sets,
+                    repetitions: scheme.repetitions,
+                  }),
+                ),
+              }
+            },
+          )
+
+          const performance: ExercisePerformance[] = rawPerformance.map(
+            (exercise, index) => {
+              const nestedExerciseId = exercise.exercise ?? groupId
+
+              const nestedExercise = exerciseMap.get(nestedExerciseId)
+
+              return {
+                _id: nestedExerciseId,
+                name: nestedExercise?.name ?? `Exercise ${index + 1}`,
+                schemes: exercise.schemes.map(
+                  (scheme): SchemePerformance => ({
+                    sets: scheme.sets,
+                    repetitions: scheme.repetitions,
+                    weight: scheme.weight ?? 0,
+                  }),
+                ),
+              }
+            },
+          )
 
           return {
-            _id: nestedExerciseId,
-            name: nestedExercise?.name ?? `Exercise ${index + 1}`,
-            schemes: exercise.schemes.map(
-              (scheme): Scheme => ({
-                sets: scheme.sets,
-                repetitions: scheme.repetitions,
-              }),
-            ),
+            _id: groupId,
+            name: group?.name ?? 'Exercise Group',
+            objectives,
+            performance,
           }
         })
 
-        const performance: ExercisePerformance[] = rawPerformance.map(
-          (exercise, index) => {
-            const nestedExerciseId = exercise.exercise ?? groupId
-
-            const nestedExercise = exerciseMap.get(nestedExerciseId)
-
-            return {
-              _id: nestedExerciseId,
-              name: nestedExercise?.name ?? `Exercise ${index + 1}`,
-              schemes: exercise.schemes.map(
-                (scheme): SchemePerformance => ({
-                  sets: scheme.sets,
-                  repetitions: scheme.repetitions,
-                  weight: scheme.weight ?? 0,
-                }),
-              ),
-            }
-          },
-        )
-
-        return {
-          _id: groupId,
-          name: group?.name ?? 'Exercise Group',
-          objectives,
-          performance,
-        }
-      })
-
-      return {
-        week: session.week,
-        day: session.day,
-        exercises,
+        sessions.push({ week, day, exercises })
       }
-    },
-  )
+    }
+  }
 
   const response: Client = {
     dni: client.dni,

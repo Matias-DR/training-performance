@@ -5,7 +5,9 @@ function formatObjective<Id extends string, SchemeType extends Scheme[]>({
 }: {
   exercise: Exercise<Id, SchemeType>
 }) {
-  return exercise.schemes.length > 1
+  if (exercise.schemes.length === 0) return '—'
+
+  return exercise.schemes.length !== 1
     ? exercise.schemes.reduce(
         (acc, scheme, index) =>
           `${acc}${index > 0 ? ' + ' : ''}${scheme.sets}×${scheme.repetitions}`,
@@ -18,7 +20,9 @@ function formatPerformance<
   Id extends string,
   SchemeType extends SchemePerformance[],
 >({ exercise }: { exercise: Exercise<Id, SchemeType> }) {
-  return exercise.schemes.length > 1
+  if (exercise.schemes.length === 0) return '—'
+
+  return exercise.schemes.length !== 1
     ? exercise.schemes.reduce(
         (acc, scheme, index) =>
           `${acc}${index > 0 ? ' + ' : ''}${scheme.sets}×${scheme.repetitions}×${scheme.weight}kg`,
