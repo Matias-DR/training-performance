@@ -1,3 +1,25 @@
+export interface SystemDistributionEntry {
+  week: number
+  load: number
+  intensity?: number
+  volume?: number
+}
+
+export interface System {
+  _id: string
+  name: string
+  description?: string
+  distribution: SystemDistributionEntry[]
+}
+
+export interface RoutineAssignment {
+  routineId?: string
+  startDate: string
+  endDate: string
+  active: boolean
+  systemId?: string
+}
+
 export interface Scheme {
   sets: number
   repetitions: number
